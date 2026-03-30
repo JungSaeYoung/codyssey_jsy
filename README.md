@@ -6,7 +6,7 @@
 제출물
 GitHub 저장소 하나에 모든 결과물 포함
 
-필#	항목	핵심 내용
+#	항목	핵심 내용
 1	터미널 조작 로그	pwd, ls -a, mkdir, cp, mv, rm, cat, touch 등 명령어 + 출력 기록
 2	권한 실습	chmod로 파일/디렉토리 권한 변경 전/후 비교 (최소 각 1개)
 3	Docker 설치 점검	docker --version, docker info 결과 기록
@@ -14,6 +14,7 @@ GitHub 저장소 하나에 모든 결과물 포함
 5	커스텀 Dockerfile	(A) nginx 등 웹서버 베이스 또는 (B) ubuntu/alpine 베이스로 커스텀 이미지 빌드
 6	포트 매핑 + 볼륨	-p 포트 매핑 접속 증거 + Docker 볼륨 영속성 증명 (컨테이너 삭제 후 데이터 유지)
 7	Git/GitHub 연동	git config 설정 + GitHub 저장소 연동 증거
+
 README.md 필수 포함 사항
 프로젝트 개요 / 실행 환경 / 수행 체크리스트 / 검증 방법
 트러블슈팅 2건 이상 (문제 → 원인 → 해결)
