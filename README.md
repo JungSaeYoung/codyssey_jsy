@@ -26,7 +26,7 @@ Docker Compose 멀티 컨테이너 (웹서버 + 보조서비스) + 컨테이너 
 환경 특이사항
 Mac + OrbStack 사용 (sudo 없이 Docker 실행 가능
 
-## 1. 터미널 조작 로그(세부 내용은 이미지 참조)
+## 1. 터미널 조작 로그
 
 root@da9ce8573016 /codyssey_jsy main*
 ❯ pwd
