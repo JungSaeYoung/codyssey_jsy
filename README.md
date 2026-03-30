@@ -6,8 +6,7 @@
 제출물
 GitHub 저장소 하나에 모든 결과물 포함
 
-필수 수행 항목 (7가지)
-#	항목	핵심 내용
+필#	항목	핵심 내용
 1	터미널 조작 로그	pwd, ls -a, mkdir, cp, mv, rm, cat, touch 등 명령어 + 출력 기록
 2	권한 실습	chmod로 파일/디렉토리 권한 변경 전/후 비교 (최소 각 1개)
 3	Docker 설치 점검	docker --version, docker info 결과 기록
