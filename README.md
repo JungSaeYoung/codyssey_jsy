@@ -84,9 +84,9 @@ git version 2.43.0
 ## 환경 설정 방법
 Mac 환경에 설치되어 있는 OrbStack으로 CLI 없이 환경 설정을 진행하려 했으나, GUI에서 컨테이너를 여는게 불가능 했다.
 따라서 OrbStack과 함께 설치되어 있는 Docker에서 Ubuntu:latest 이미지를 pull 하여 Terminal로 열었다.
-따로 이미지를 설치하지 않으면 Alpine Linux로 컨테이너가 열린다.
+따로 이미지를 설치하지 않으면 자동으로 Alpine Linux로 컨테이너가 열린다.
 
-git 패키지 설치는 
+컨테이너 내에서 git 패키지 설치는 
 
 apt update && apt install -y git
 
@@ -246,4 +246,260 @@ root@a0e013d547db:/codyssey_jsy# chmod 700 mydir
 root@a0e013d547db:/codyssey_jsy# ls -ld mydir
 drwx------ 1 root root 0 Mar 31 09:05 mydir
 
-의도한대로 잘 수정 된 것을 확인할 수 있다.ㄴ
+의도한대로 잘 수정 된 것을 확인할 수 있다.
+
+## 3. Docker 설치 점검
+
+여태까지 잘 사용했지만, 추가로 Docker의 상태를 다시 점검해본다.
+
+OrbStack이 켜진 상태에서 아래 명령어를 Terminal에 입력해보자.
+
+ashofrondol9475@c3r8s7 ~ % docker --version
+Docker version 28.5.2, build ecc6942
+
+또, 아래 명령어도 입력해보자.
+
+ashofrondol9475@c3r8s7 ~ % docker info
+Client:
+ Version:    28.5.2
+ Context:    orbstack
+ Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.29.1
+    Path:     /Users/ashofrondol9475/.docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.40.3
+    Path:     /Users/ashofrondol9475/.docker/cli-plugins/docker-compose
+
+Server:
+ Containers: 1
+  Running: 1
+  Paused: 0
+  Stopped: 0
+ Images: 1
+ Server Version: 28.5.2
+ Storage Driver: overlay2
+  Backing Filesystem: btrfs
+  Supports d_type: true
+  Using metacopy: false
+  Native Overlay Diff: true
+  userxattr: false
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 2
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
+ Swarm: inactive
+ Runtimes: runc io.containerd.runc.v2
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 1c4457e00facac03ce1d75f7b6777a7a851e5c41
+ runc version: d842d7719497cc3b774fd71620278ac9e17710e0
+ init version: de40ad0
+ Security Options:
+  seccomp
+   Profile: builtin
+  cgroupns
+ Kernel Version: 6.17.8-orbstack-00308-g8f9c941121b1
+ Operating System: OrbStack
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 6
+ Total Memory: 15.67GiB
+ Name: orbstack
+ ID: edaf9914-5c2d-4675-91b2-714093abe4c0
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ Experimental: false
+ Insecure Registries:
+  ::1/128
+  127.0.0.0/8
+ Live Restore Enabled: false
+ Product License: Community Engine
+ Default Address Pools:
+   Base: 192.168.97.0/24, Size: 24
+   Base: 192.168.107.0/24, Size: 24
+   Base: 192.168.117.0/24, Size: 24
+   Base: 192.168.147.0/24, Size: 24
+   Base: 192.168.148.0/24, Size: 24
+   Base: 192.168.155.0/24, Size: 24
+   Base: 192.168.156.0/24, Size: 24
+   Base: 192.168.158.0/24, Size: 24
+   Base: 192.168.163.0/24, Size: 24
+   Base: 192.168.164.0/24, Size: 24
+   Base: 192.168.165.0/24, Size: 24
+   Base: 192.168.166.0/24, Size: 24
+   Base: 192.168.167.0/24, Size: 24
+   Base: 192.168.171.0/24, Size: 24
+   Base: 192.168.172.0/24, Size: 24
+   Base: 192.168.181.0/24, Size: 24
+   Base: 192.168.183.0/24, Size: 24
+   Base: 192.168.186.0/24, Size: 24
+   Base: 192.168.207.0/24, Size: 24
+   Base: 192.168.214.0/24, Size: 24
+   Base: 192.168.215.0/24, Size: 24
+   Base: 192.168.216.0/24, Size: 24
+   Base: 192.168.223.0/24, Size: 24
+   Base: 192.168.227.0/24, Size: 24
+   Base: 192.168.228.0/24, Size: 24
+   Base: 192.168.229.0/24, Size: 24
+   Base: 192.168.237.0/24, Size: 24
+   Base: 192.168.239.0/24, Size: 24
+   Base: 192.168.242.0/24, Size: 24
+   Base: 192.168.247.0/24, Size: 24
+   Base: fd07:b51a:cc66:d000::/56, Size: 64
+
+WARNING: DOCKER_INSECURE_NO_IPTABLES_RAW is set
+
+맨 아래 WARNING이 뜨는데, 크게 신경쓰지 않아도 된다.
+Docker의 경우 기뵌적으로 iptables라는 리눅스 방화벽을 사용하는데, 이 기능이 비활성화 되어 있어서 그렇다.
+내 경우에서는 도커 컨테이너에 중요한 정보가 없기도 하고, 외부망에 열어 놓은 것도 아니고, 컨테이너를 올 때마다 새로 만들어서 사용하기 때문에 신경쓰지 않았다.
+
+## 4. Docker 기본 운영
+
+여기에서는 Docker의 가장 기본적인 사용 방법을 다룬다.
+맥의 터미널을 열어 아래 명령어를 입력해보자.
+
+ashofrondol9475@c3r8s7 ~ % docker images
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+ubuntu       latest    f794f40ddfff   5 weeks ago   78.1MB
+
+그러면 아까 설치했던 ubuntu 이미지가 하나 있는 것을 볼 수 있다.
+내 경우에선 ubuntu 이미지가 깔려있지 않았을 때 Alpine Linux로 실행되는 것을 확인했는데, 이미지가 없을 때 무조건 그렇게 실행되는지는 확인해 볼 필요가 있다.
+
+이어서 아래 명령어를 입력해보자.
+
+ashofrondol9475@c3r8s7 ~ % docker ps -a 
+CONTAINER ID   IMAGE     COMMAND   CREATED       STATUS       PORTS     NAMES
+a0e013d547db   ubuntu    "bash"    5 hours ago   Up 5 hours             strange_haibt
+
+지금 실행 중인 컨테이너의 아이디와 image는 어떤 것인지, command type이 뭔지, 언제 만들어졌는지, 현황, 포트, 이름을 확인할 수 있다.
+
+아래 명령어를 사용해보면 로그를 확인할 수 있다.
+
+docker logs 컨테이너이름    # 전체 로그 출력
+docker logs -f 컨테이너이름  # 실시간 로그 확인 (Ctrl+C로 종료)
+docker logs --tail 10 컨테이너이름  # 마지막 10줄만
+
+로그는 달리 보여줄 것이 없어서 보여주진 않지만, 앞서 docker ps -a 명령어로 확인한 Container ID나 Name을 컨테이너 이름에 넣어주면 작동한다.
+
+docker stats를 입력하면 컨테이너의 실시간 자원 할당량이나 프로세스 아이디를 확인할 수 있다.(나가려면 ctrl + c)
+
+CONTAINER ID   NAME            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O          BLOCK I/O        PIDS 
+a0e013d547db   strange_haibt   525.40%   9.395GiB / 15.67GiB   59.94%    73.3MB / 544kB   4.56GB / 643MB   124 
+
+docker stats --no-stream 을 치면 실시간 확인이 아닌 당장의 값만 반환받을 수 있다.
+
+## 5. 커스텀 Dockerfile (NGINX)
+먼저, 커스텀 Dockerfile을 위한 준비가 필요하다.
+가장 먼저 작업 폴더를 준비하자.
+
+root@a0e013d547db:/codyssey_jsy# mkdir -p ~/docker-project/app
+root@a0e013d547db:/codyssey_jsy# cd ~/docker-project
+
+root@a0e013d547db:~/docker-project# vim app/index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Docker Web</title>
+</head>
+<body>
+    <h1>Hello Docker!</h1>
+    <p>This is my custom NGINX container.</p>
+</body>
+</html>
+
+위 내용을 vim 에디터로 작성 한 뒤 cat으로 확인해보자.
+
+root@a0e013d547db:~/docker-project# cat app/index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Docker Web</title>
+</head>
+<body>
+    <h1>Hello Docker!</h1>
+    <p>This is my custom NGINX container.</p>
+</body>
+</html>
+
+잘 작성된 것을 확인할 수 있다.
+이제 dockerfile을 준비하자.
+
+root@a0e013d547db:~/docker-project# vim Dockerfile
+FROM nginx:alpine
+COPY app/index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+
+root@a0e013d547db:~/docker-project# cat Dockerfile 
+FROM nginx:alpine
+COPY app/index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+
+잘 저장됐는지 확인까지 한다.
+
+위 코드는 다음과 같은 역할을 한다.
+FROM nginx:alpine : nginx 웹 서버가 설치된 Alpine 이미지를 베이스로 사용
+COPY app/index.html ... : 내가 만든 HTML을 nginx 기본 웹 경로에 복사
+EXPOSE 80 : 컨테이너가 80번 포트를 사용한다고 명시
+
+이어서 만든 docker-project를 컨테이너 폴더 바깥으로 옮긴다.
+도커 안에서 도커를 여는(DinD, Docker in Docker) 것은 일반적으로 불가능하고, 전용 이미지와 --privileged 옵션이 필요하기 때문이다.
+따라서 터미널을 열어 새로운 컨테이너를 생성해서 실행해야 한다.
+먼저 이미지를 만들어보자.
+
+
+ashofrondol9475@c3r8s7 ~ % ls                      
+Desktop		Documents	Downloads	Library		Movies		Music		OrbStack	Pictures	Public
+ashofrondol9475@c3r8s7 ~ % cd Desktop
+ashofrondol9475@c3r8s7 Desktop % ls
+docker-project
+ashofrondol9475@c3r8s7 Desktop % cd docker-project
+ashofrondol9475@c3r8s7 docker-project % ls
+Dockerfile	app
+
+가장 먼저 docker-project 폴더로 cd를 통해 넘어간다.
+
+ashofrondol9475@c3r8s7 docker-project % docker build -t my-web .
+[+] Building 7.9s (7/7) FINISHED                                                                                                               docker:orbstack
+ => [internal] load build definition from Dockerfile                                                                                                      0.2s
+ => => transferring dockerfile: 118B                                                                                                                      0.0s
+ => [internal] load metadata for docker.io/library/nginx:alpine                                                                                           2.9s
+ => [internal] load .dockerignore                                                                                                                         0.1s
+ => => transferring context: 2B                                                                                                                           0.0s
+ => [internal] load build context                                                                                                                         0.2s
+ => => transferring context: 237B                                                                                                                         0.0s
+ => [1/2] FROM docker.io/library/nginx:alpine@sha256:e7257f1ef28ba17cf7c248cb8ccf6f0c6e0228ab9c315c152f9c203cd34cf6d1                                     3.7s
+ => => resolve docker.io/library/nginx:alpine@sha256:e7257f1ef28ba17cf7c248cb8ccf6f0c6e0228ab9c315c152f9c203cd34cf6d1                                     0.2s
+ => => sha256:589002ba0eaed121a1dbf42f6648f29e5be55d5c8a6ee0f8eaa0285cc21ac153 3.86MB / 3.86MB                                                            0.6s
+ => => sha256:d5030d429039a823bef4164df2fad7a0defb8d00c98c1136aec06701871197c2 12.32kB / 12.32kB                                                          0.0s
+ => => sha256:e7257f1ef28ba17cf7c248cb8ccf6f0c6e0228ab9c315c152f9c203cd34cf6d1 10.33kB / 10.33kB                                                          0.0s
+ => => sha256:7e89aa6cabfc80f566b1b77b981f4bb98413bd2d513ca9a30f63fe58b4af6903 2.50kB / 2.50kB                                                            0.0s
+ => => sha256:91d1c9c22f2c631288354fadb2decc448ce151d7a197c167b206588e09dcd50a 626B / 626B                                                                0.9s
+ => => sha256:8892f80f46a05d59a4cde3bcbb1dd26ed2441d4214870a4a7b318eaa476a0a54 1.87MB / 1.87MB                                                            0.8s
+ => => extracting sha256:589002ba0eaed121a1dbf42f6648f29e5be55d5c8a6ee0f8eaa0285cc21ac153                                                                 0.1s
+ => => sha256:cf1159c696ee2a72b85634360dbada071db61bceaad253db7fda65c45a58414c 953B / 953B                                                                1.1s
+ => => extracting sha256:8892f80f46a05d59a4cde3bcbb1dd26ed2441d4214870a4a7b318eaa476a0a54                                                                 0.1s
+ => => sha256:3f4ad4352d4f91018e2b4910b9db24c08e70192c3b75d0d6fff0120c838aa0bb 402B / 402B                                                                1.3s
+ => => sha256:c2bd5ab177271dd59f19a46c214b1327f5c428cd075437ec0155ae71d0cdadc1 1.21kB / 1.21kB                                                            1.4s
+ => => extracting sha256:91d1c9c22f2c631288354fadb2decc448ce151d7a197c167b206588e09dcd50a                                                                 0.0s
+ => => extracting sha256:cf1159c696ee2a72b85634360dbada071db61bceaad253db7fda65c45a58414c                                                                 0.0s
+ => => sha256:4d9d41f3822d171ccc5f2cdfd75ad846ac4c7ed1cd36fb998fe2c0ce4501647b 1.40kB / 1.40kB                                                            1.7s
+ => => extracting sha256:3f4ad4352d4f91018e2b4910b9db24c08e70192c3b75d0d6fff0120c838aa0bb                                                                 0.0s
+ => => extracting sha256:c2bd5ab177271dd59f19a46c214b1327f5c428cd075437ec0155ae71d0cdadc1                                                                 0.0s
+ => => sha256:3370263bc02adcf5c4f51831d2bf1d54dbf9a6a80b0bf32c5c9b9400630eaa08 20.25MB / 20.25MB                                                          2.1s
+ => => extracting sha256:4d9d41f3822d171ccc5f2cdfd75ad846ac4c7ed1cd36fb998fe2c0ce4501647b                                                                 0.0s
+ => => extracting sha256:3370263bc02adcf5c4f51831d2bf1d54dbf9a6a80b0bf32c5c9b9400630eaa08                                                                 0.4s
+ => [2/2] COPY app/index.html /usr/share/nginx/html/index.html                                                                                            0.3s
+ => exporting to image                                                                                                                                    0.3s
+ => => exporting layers                                                                                                                                   0.2s
+ => => writing image sha256:c88bf25cd40be5df6da00626109fa208f40ff02697a37e6a1834579451140523                                                              0.0s
+ => => naming to docker.io/library/my-web                                                                                                                 0.0s
+
