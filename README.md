@@ -13,9 +13,11 @@ GitHub 저장소 하나에 모든 결과물 포함
 | 2 | 권한 실습 | chmod로 파일/디렉토리 권한 변경 전/후 비교 (최소 각 1개) |
 | 3 | Docker 설치 점검 | docker --version, docker info 결과 기록 |
 | 4 | Docker 기본 운영 | images, ps, logs, stats + hello-world 실행 + ubuntu 컨테이너 진입 |
-| 5 | 커스텀 Dockerfile | (A) nginx 등 웹서버 베이스 또는 (B) ubuntu/alpine 베이스로 커스텀 이미지 빌드 |
+| 5 | 커스텀 Dockerfile 및 바인드 마운트 테스트 | (A) nginx 등 웹서버 베이스 또는 (B) ubuntu/alpine 베이스로 커스텀 이미지 빌드 |
 | 6 | 포트 매핑 + 볼륨 | -p 포트 매핑 접속 증거 + Docker 볼륨 영속성 증명 (컨테이너 삭제 후 데이터 유지) |
-| 7 | Git/GitHub 연동 | git config 설정 + GitHub 저장소 연동 증거 |
+| 7 | Git/GitHub 연동 및 동작 | git config 설정 + GitHub 저장소 연동 증거 및 push 과정 |
+| 8 | 트러블슈팅 | 진행했던 것 중 마주한 문제 |
+| 9 | 보너스 문제 | Docker Compose 단일 서비스 및 멀티 컨테이너 |
 
 ### README.md 필수 포함 사항
 
@@ -396,7 +398,7 @@ a0e013d547db   strange_haibt   525.40%   9.395GiB / 15.67GiB   59.94%    73.3MB 
 
 docker stats --no-stream 을 치면 실시간 확인이 아닌 당장의 값만 반환받을 수 있다.
 
-## 5. 커스텀 Dockerfile (NGINX)
+## 5.1. 커스텀 Dockerfile (NGINX)
 먼저, 커스텀 Dockerfile을 위한 준비가 필요하다.
 가장 먼저 작업 폴더를 준비하자.
 
@@ -503,3 +505,236 @@ ashofrondol9475@c3r8s7 docker-project % docker build -t my-web .
  => => writing image sha256:c88bf25cd40be5df6da00626109fa208f40ff02697a37e6a1834579451140523                                                              0.0s
  => => naming to docker.io/library/my-web                                                                                                                 0.0s
 
+ashofrondol9475@c3r8s7 docker-project % docker run -d -p 8080:80 --name my-nginx my-web
+ca49e10a48eaae1da9b320a854a3d9d66cbcf829e570a19207e1fd2c5d4fbe48
+
+웹브라우저에 들어가서 localhost:8080으로 접속하면 직접 만든 웹사이트에 접속할 수 있다.
+
+## 5.2. 바인드 마운트 테스트
+
+바인드 마운트 테스트를 하는 이유는 간단하다. 
+호스트(Mac)의 파일을 수정하면 컨테이너에 즉시 반영되는 것을 확인하기 위해서이다.
+
+바인드 마운트 없이
+Mac에서 파일 수정 → 컨테이너에 반영 안 됨 → 이미지 다시 빌드해야 함
+
+바인드 마운트 있으면
+Mac에서 파일 수정 → 컨테이너에 즉시 반영 → 브라우저 새로고침만 하면 됨
+
+따라서 실제 개발할 때 코드를 수정할 때마다 이미지를 다시 빌드하면 비효율적이기 때문에 바인드 마운트를 쓰면 실시간으로 변경사항이 반영되어 개발이 훨씬 빨라진다.
+(실제 프론트엔드 작업 시 코드 업데이트 이후 변경사항을 확인하는게 불편하기 때문에 디버그 모드나 Live server같은 익스텐션을 사용하기도 한다.)
+
+docker run -d -p 8081:80 -v $(pwd)/app:/usr/share/nginx/html --name mount-test nginx:alpine
+
+localhost 8081 포트에 새로 nginx 도커를 실행한다.
+
+아까와 동일한 환경으로 켜진 것을 확인할 수 있는데, 여기에서 수정을 가해 볼 것이다.
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p2 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 16.1px 0.0px; font: 24.0px Times; -webkit-text-stroke: #000000"><span class="s1"><b>Hello Bind Mount!</b></span></h1>
+<p class="p2"><span class="s1">This is my custom NGINX container.</span></p>
+<p class="p2"><span class="s1">With bind mount test.</span></p>
+</body>
+</html>
+
+이렇게 수정하고 나서 확인해보면 잘 바뀐 것을 확인할 수 있다.
+
+## 6. 도커 볼륨 영속성 검증
+
+핵심은 컨테이너를 삭제해도 데이터가 살아있는지 확인하는 것이다.
+
+1. 볼륨 생성
+
+docker volume create my-volume
+2. 컨테이너에 볼륨 연결 + 데이터 저장
+
+docker run -v my-volume:/data --name vol-test ubuntu bash -c "echo 'persistent data' > /data/test.txt"
+3. 데이터 확인 (삭제 전)
+
+docker run --rm -v my-volume:/data ubuntu cat /data/test.txt
+→ 출력: persistent data
+
+4. 컨테이너 삭제
+
+docker rm vol-test
+5. 새 컨테이너에서 데이터 확인 (삭제 후)
+
+docker run --rm -v my-volume:/data ubuntu cat /data/test.txt
+→ 출력: persistent data → 스크린샷
+
+이게 왜 중요한가?
+
+볼륨 없이: 컨테이너 삭제 → 데이터도 삭제
+볼륨 있으면: 컨테이너 삭제 → 데이터 유지
+데이터베이스, 로그 파일 등 사라지면 안 되는 데이터를 보존할 때 볼륨을 사용한다. 삭제 전/후 출력이 동일한 것을 보여주면 영속성 증명이 완료된다.
+
+ashofrondol9475@c3r8s7 docker-project % docker volume create my-volume
+my-volume
+
+ashofrondol9475@c3r8s7 docker-project % docker run -v my-volume:/data --name vol-test ubuntu bash -c "echo 'persistent data' > /data/test.txt"
+
+위 명령어가 좀 복잡하니 주석을 달았다.
+
+docker run \
+  -v my-volume:/data \          # my-volume 볼륨을 컨테이너의 /data 경로에 연결
+  --name vol-test \             # 컨테이너 이름을 vol-test로 지정
+  ubuntu \                      # ubuntu 이미지 사용
+  bash -c "echo 'persistent data' > /data/test.txt"  # /data/test.txt에 텍스트 저장
+
+ashofrondol9475@c3r8s7 docker-project % docker run --rm -v my-volume:/data ubuntu cat /data/test.txt
+persistent data
+
+persistent data라고 나오는 것을 확인할 수 있다.
+볼륨 영속성을 검증했으니 삭제하고 나서 삭제를 진행해보자.
+
+ashofrondol9475@c3r8s7 docker-project % docker rm vol-test
+vol-test
+
+잘 지웠다. 이제 영속성을 확인해보자.
+
+ashofrondol9475@c3r8s7 docker-project % docker run --rm -v my-volume:/data ubuntu cat /data/test.txt
+persistent data
+
+docker run \
+  --rm \                        # 실행 끝나면 컨테이너 자동 삭제
+  -v my-volume:/data \          # my-volume 볼륨을 컨테이너의 /data 경로에 연결
+  ubuntu \                      # ubuntu 이미지 사용
+  cat /data/test.txt            # /data/test.txt 파일 내용 출력
+
+persistent data라고 나오는 것을 확인할 수 있다. 
+성공이다.
+
+## 7. Git/GitHub 연동 및 동작
+
+나는 git을 VS Code의 소스 제어를 하기 때문에 업로드를 할 때 사용할 토큰을 처음 한 번만 CLI로 작업할 때 사용하고, 이후는 전부 VS Code를 이용해 commit과 push 를 진행했다.
+다만 git config에서 리스트를 출력하면 초기에 설정을 하기도 했고, 소스 제어를 사용할 때도 user와 email을 등록해놨기 때문에 잘 출력될 것이다.
+
+root@a0e013d547db:/codyssey_jsy# git config --list
+credential.helper=!f() { /root/.vscode-server/bin/07ff9d6178ede9a1bd12ad3399074d726ebe6e43/node /tmp/vscode-remote-containers-99677bf1-ff13-4953-a4fd-2c3a7361ddf4.js git-credential-helper $*; }; f
+credential.helper=!f() { /root/.vscode-server/bin/07ff9d6178ede9a1bd12ad3399074d726ebe6e43/node /tmp/vscode-remote-containers-99677bf1-ff13-4953-a4fd-2c3a7361ddf4.js git-credential-helper $*; }; f
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.origin.url=https://github.com/JungSaeYoung/codyssey_jsy.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+branch.main.vscode-merge-base=origin/main
+user.name=JungSaeYoung
+user.email=이메일은 비공개합니다.
+
+잘 나오는 것을 확인할 수 있다.
+
+만약 이게 안나온다면 아래 명령어를 통해 미리 user.name과 user.email을 설정해야 정상적으로 git을 사용할 수 있다.
+
+git config --global user.name "본인이름"
+git config --global user.email "본인이메일@example.com"
+
+가장 처음에 했던 내용이지만 이 과정을 진행하기 위해서 해야 하는 일을 설명하겠다.
+
+처음에 git 저장소로 사용할 곳으로 mkdir을 통해 폴더를 만들고, git init을 해준다.
+이후에 아래 과정을 진행하면 된다.
+
+1. 깃 상태 확인
+cd ~/docker-project
+git status
+
+2. 파일 전체 추가
+git add .
+
+3. 커밋
+git commit -m "커밋 메시지"
+ex) git commit -m "Docker 워크스테이션 구축 과제 완료"
+
+4. 푸시
+git push -u origin main
+
+이때 인자값으로 설정한 -u는 업스트림 설정인데, 처음에 이렇게 실행하면 이후에 git push를 하면 이때 설정한대로 git push origin main으로 명령어가 동작하게 된다.
+
+
+## 8. 트러블슈팅
+
+### 트러블슈팅 1: OrbStack GUI에서 Docker 컨테이너 생성 실패
+
+**문제**
+OrbStack 애플리케이션에서 Docker 생성 및 실행 버튼을 눌렀을 때 "failed to create" 에러가 발생했다.
+
+**원인 가설**
+- OrbStack 설치 직후 내부 초기화가 완료되지 않았을 가능성
+- macOS 보안 정책(및 서울 캠퍼스 보안 상)으로 인한 권한 미허용
+
+**확인**
+OrbStack 설정 및 macOS 시스템 설정의 개인정보 보호 및 보안 항목을 확인했다.
+
+**해결**
+GUI 대신 터미널에서 직접 Docker 명령어를 사용하는 방식으로 전환했다.
+OrbStack이 실행된 상태에서 터미널에 docker 명령어를 입력하면 정상적으로 동작했다.
+
+docker pull ubuntu:latest
+docker run -it ubuntu bash
+
+GUI에 의존하지 않고 CLI로 작업하는 것이 더 안정적이었다.
+
+---
+
+### 트러블슈팅 2: 컨테이너 내부에서 docker build 실행 시 소켓 에러
+
+**문제**
+Ubuntu 컨테이너 안에서 docker build를 실행했을 때 아래 에러가 발생했다.
+
+ERROR: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory
+
+**원인 가설**
+- 컨테이너 내부에 Docker 엔진이 설치되어 있지 않을 가능성
+- 일반 컨테이너에서는 Docker 데몬에 접근할 수 없는 구조일 가능성
+
+**확인**
+일반적인 Docker 컨테이너는 격리된 환경이기 때문에 내부에 Docker 데몬이 존재하지 않는다.
+컨테이너 안에서 Docker를 사용하려면 Docker in Docker(DinD)라는 전용 이미지(docker:dind)와 --privileged 옵션이 필요하다.
+
+**해결**
+Docker 관련 명령어(build, run, ps 등)는 Mac 터미널에서 실행하고, 컨테이너 내부에서는 리눅스 실습(ls, chmod 등)만 수행하는 것으로 작업 방식을 분리했다.
+
+- Mac 터미널: docker build, docker run 등 Docker 명령 실행
+- 컨테이너 내부: 리눅스 명령어 실습 (터미널 조작, 권한 변경 등)
+
+---
+
+### 트러블슈팅 3: apt install git 패키지 찾기 실패
+
+**문제**
+Ubuntu 컨테이너에서 git을 설치하려고 했을 때 아래 에러가 발생했다.
+
+E: Unable to locate package git
+
+**원인 가설**
+- 패키지 목록이 업데이트되지 않아 패키지를 찾지 못하는 것으로 추정
+
+**확인**
+Docker의 Ubuntu 이미지는 용량을 줄이기 위해 패키지 목록이 포함되지 않은 최소 상태로 배포된다.
+따라서 apt update를 먼저 실행하여 패키지 목록을 다운로드해야 한다.
+
+**해결**
+
+apt update && apt install -y git
+
+apt update를 먼저 실행한 뒤 설치하니 정상적으로 git이 설치되었다.
+Docker 컨테이너에서 패키지를 설치할 때는 항상 apt update를 먼저 실행해야 한다는 것을 알게 되었다.
+
+## 9.1. 보너스 문제
+
+## 9.2. 보너스 문제
