@@ -737,4 +737,76 @@ Docker 컨테이너에서 패키지를 설치할 때는 항상 apt update를 먼
 
 ## 9.1. 보너스 문제
 
+1. docker-compose.yml 작성
+
+cd ~/Desktop/docker-project
+vim docker-compose.yml
+
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app:/usr/share/nginx/html
+2. 기존 컨테이너 정리 (포트 충돌 방지)
+
+docker stop my-nginx mount-test
+docker rm my-nginx mount-test
+3. 실행
+
+docker compose up -d
+4. 확인
+
+docker compose ps
+→ 브라우저에서 http://localhost:8080 접속 → 스크린샷
+
+5. 종료
+
+docker compose down
+핵심 포인트: docker run 명령어를 매번 치는 대신, yml 파일에 설정을 저장해두고 docker compose up 한 줄로 실행할 수 있다.
+
 ## 9.2. 보너스 문제
+
+1. docker-compose.yml 수정
+
+vim docker-compose.yml
+
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app:/usr/share/nginx/html
+    depends_on:
+      - api
+
+  api:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+항목	설명
+web	아까 만든 커스텀 nginx (8080 포트)
+api	보조 서비스 nginx (8081 포트)
+depends_on	web은 api가 먼저 실행된 후 시작
+2. 실행
+
+docker compose up -d
+3. 두 서비스 모두 실행 확인
+
+docker compose ps
+→ 브라우저에서 localhost:8080, localhost:8081 둘 다 접속 → 스크린샷
+
+4. 컨테이너 간 통신 확인
+
+docker compose exec web sh -c "apk add curl && curl http://api:80"
+→ api 컨테이너의 nginx 응답이 오면 통신 성공 → 스크린샷
+
+핵심 포인트: 같은 docker-compose.yml 안의 서비스끼리는 서비스 이름(api, web)으로 서로 통신할 수 있다. IP 주소를 몰라도 된다.
+
+5. 종료
+
+docker compose down
