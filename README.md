@@ -570,6 +570,7 @@ docker run --rm -v my-volume:/data ubuntu cat /data/test.txt
 4. 컨테이너 삭제
 
 docker rm vol-test
+
 5. 새 컨테이너에서 데이터 확인 (삭제 후)
 
 docker run --rm -v my-volume:/data ubuntu cat /data/test.txt
@@ -737,10 +738,15 @@ Docker 컨테이너에서 패키지를 설치할 때는 항상 apt update를 먼
 
 ## 9.1. 보너스 문제
 
-1. docker-compose.yml 작성
+먼저, docker compose를 사용하는 이유를 이해해야 한다.
+docker run은 하나의 컨테이너만 키는데 사용된다.
+근데, 여러 컨테이너를 종료했다가 다시 시작할 일이 있으면 docker run을 전부 다시 작성해서 입력해야 한다.
+이를 docker compose.yaml을 통해 한 번에 켜고 끌 수 있다.
+
+1. docker-compose.yaml 작성
 
 cd ~/Desktop/docker-project
-vim docker-compose.yml
+vim docker-compose.yaml
 
 version: '3'
 services:
@@ -750,28 +756,69 @@ services:
       - "8080:80"
     volumes:
       - ./app:/usr/share/nginx/html
-2. 기존 컨테이너 정리 (포트 충돌 방지)
 
+2. 기존 컨테이너 정리 (포트 충돌 방지)
 docker stop my-nginx mount-test
 docker rm my-nginx mount-test
+
 3. 실행
-
 docker compose up -d
-4. 확인
 
+-d는 detached의 약자이다.
+
+docker compose up       # 실행 (터미널이 로그에 묶임, Ctrl+C로 종료)
+docker compose up -d    # 백그라운드 실행 (터미널 자유롭게 사용 가능)
+
+ashofrondol9475@c3r8s7 docker-project % vim docker-compose.yaml 
+ashofrondol9475@c3r8s7 docker-project % docker compose up -d
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Building 1.2s (9/9) FINISHED                                                
+ => [internal] load local bake definitions                                 0.0s
+ => => reading from stdin 545B                                             0.0s
+ => [internal] load build definition from Dockerfile                       0.1s
+ => => transferring dockerfile: 118B                                       0.0s
+ => [internal] load metadata for docker.io/library/nginx:alpine            0.0s
+ => [internal] load .dockerignore                                          0.1s
+ => => transferring context: 2B                                            0.0s
+ => [internal] load build context                                          0.1s
+ => => transferring context: 908B                                          0.0s
+ => CACHED [1/2] FROM docker.io/library/nginx:alpine                       0.0s
+ => [2/2] COPY app/index.html /usr/share/nginx/html/index.html             0.1s
+ => exporting to image                                                     0.2s
+ => => exporting layers                                                    0.1s
+ => => writing image sha256:3ffae8ce3d7dcfd3d2803f2c1c4527b50b8bce080d4a7  0.0s
+ => => naming to docker.io/library/docker-project-web                      0.0s
+ => resolving provenance for metadata file                                 0.0s
+[+] Running 3/3
+ ✔ docker-project-web              Built                                   0.0s 
+ ✔ Network docker-project_default  Cre...                                  0.1s 
+ ✔ Container docker-project-web-1  Sta...                                  0.5s
+
+4. 확인
 docker compose ps
 → 브라우저에서 http://localhost:8080 접속 → 스크린샷
 
-5. 종료
+ashofrondol9475@c3r8s7 docker-project % docker compose ps 
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+NAME                   IMAGE                COMMAND                  SERVICE   CREATED         STATUS         PORTS
+docker-project-web-1   docker-project-web   "/docker-entrypoint.…"   web       2 minutes ago   Up 2 minutes   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
 
+경고가 뜨는데, version이라는 부분이 더 이상 필요하지 않다는 것이다. 굳이 수정하지 않아도 되기 때문에 그냥 유지한다. 정상 작동하는 것을 확인했다.
+
+5. 종료
 docker compose down
 핵심 포인트: docker run 명령어를 매번 치는 대신, yml 파일에 설정을 저장해두고 docker compose up 한 줄로 실행할 수 있다.
+
+ashofrondol9475@c3r8s7 docker-project % docker compose down
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 2/2
+ ✔ Container docker-project-web-1  Rem...                                  0.6s 
+ ✔ Network docker-project_default  Rem...                                  0.1s
 
 ## 9.2. 보너스 문제
 
 1. docker-compose.yml 수정
-
-vim docker-compose.yml
+vim docker-compose.yaml
 
 version: '3'
 services:
@@ -788,25 +835,78 @@ services:
     image: nginx:alpine
     ports:
       - "8081:80"
+
 항목	설명
 web	아까 만든 커스텀 nginx (8080 포트)
 api	보조 서비스 nginx (8081 포트)
 depends_on	web은 api가 먼저 실행된 후 시작
+
 2. 실행
-
 docker compose up -d
-3. 두 서비스 모두 실행 확인
 
+ashofrondol9475@c3r8s7 docker-project % vim docker-compose.yaml 
+ashofrondol9475@c3r8s7 docker-project % docker compose up -d
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 3/3
+ ✔ Network docker-project_default  Cre...                                  0.1s 
+ ✔ Container docker-project-api-1  Sta...                                  0.4s 
+ ✔ Container docker-project-web-1  Sta...                                  0.6s
+
+3. 두 서비스 모두 실행 확인
 docker compose ps
 → 브라우저에서 localhost:8080, localhost:8081 둘 다 접속 → 스크린샷
 
-4. 컨테이너 간 통신 확인
+ashofrondol9475@c3r8s7 docker-project % docker compose ps 
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+NAME                   IMAGE                COMMAND                  SERVICE   CREATED          STATUS          PORTS
+docker-project-api-1   nginx:alpine         "/docker-entrypoint.…"   api       34 seconds ago   Up 33 seconds   0.0.0.0:8081->80/tcp, [::]:8081->80/tcp
+docker-project-web-1   docker-project-web   "/docker-entrypoint.…"   web       34 seconds ago   Up 33 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
 
+정상 동작하는 것을 확인했다. 웹사이트에 들어가서도 확인해보자.
+
+4. 컨테이너 간 통신 확인
 docker compose exec web sh -c "apk add curl && curl http://api:80"
-→ api 컨테이너의 nginx 응답이 오면 통신 성공 → 스크린샷
+→ api 컨테이너의 nginx 응답이 오면 통신 성공
 
 핵심 포인트: 같은 docker-compose.yml 안의 서비스끼리는 서비스 이름(api, web)으로 서로 통신할 수 있다. IP 주소를 몰라도 된다.
 
-5. 종료
+ashofrondol9475@c3r8s7 docker-project % docker compose exec web sh -c "apk add curl && curl http://api:80"
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+OK: 58.9 MiB in 72 packages
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, nginx is successfully installed and working.
+Further configuration is required for the web server, reverse proxy, 
+API gateway, load balancer, content cache, or other features.</p>
 
+<p>For online documentation and support please refer to
+<a href="https://nginx.org/">nginx.org</a>.<br/>
+To engage with the community please visit
+<a href="https://community.nginx.org/">community.nginx.org</a>.<br/>
+For enterprise grade support, professional services, additional 
+security features and capabilities please refer to
+<a href="https://f5.com/nginx">f5.com/nginx</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+5. 종료
 docker compose down
+
+ashofrondol9475@c3r8s7 docker-project % docker compose down 
+WARN[0000] /Users/ashofrondol9475/Desktop/docker-project/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 3/3
+ ✔ Container docker-project-web-1  Rem...                                  0.6s 
+ ✔ Container docker-project-api-1  Rem...                                  0.3s 
+ ✔ Network docker-project_default  Rem...                                  0.1s 
